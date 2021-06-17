@@ -336,9 +336,13 @@ local function checkArg(num, paramInfo)
 		and
 		(num >= paramInfo.range[1] and num <= paramInfo.range[2])
 		and
-		(paramInfo.isInt and math.floor(num) == num)
+		(not paramInfo.isInt or math.floor(num) == num)
 	)
 end
+assert(checkArg(128, {isInt = true, range = {0, 255}}))
+assert(not checkArg(276, {isInt = true, range = {0, 255}}))
+assert(not checkArg(128.6, {isInt = true, range = {0, 255}}))
+assert(checkArg(128.6, {isInt = false, range = {0, 255}}))
 
 
 --[[--
