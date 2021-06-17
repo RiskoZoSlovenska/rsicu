@@ -23,12 +23,12 @@ local writef = function(...) write(string.format(...)) end --- Shortcut for io.w
 
 local WELCOME
 do
-	local TITLE = "Welcome to RZS's Simple Image Cleaner Command Line v4!\n"
+	local TITLE = "Welcome to RZS's Simple Image Cleaner Command Line v4.1!\n"
 	WELCOME = TITLE .. string.rep("-", #TITLE - 1) .. "\n" -- Make the line as long as the title
 end
 
 local IMAGE_PROMPT = "\nInput the directory of the image which you want to process: "
-local IMAGE_FAILED_ERROR = "Image %q cannot be found or opened (%s), please try again:"
+local IMAGE_FAILED_ERROR = "Image %q cannot be found or opened (%s), please try again: "
 
 local OPERATIONS_INFO = rsicu.getAvailableOperations()
 local OPERATIONS_PROMPT
@@ -89,6 +89,8 @@ end
 
 	@param string operationName the name of the operation which this arg is for
 	@param table paramInfo a table with desc, range and isInt fields which constrain the arg
+
+	@return number the inputted number, quaranteed to be within the supplied param infos
 ]]
 local function loadNumber(operationName, paramInfo)
 	writef(
@@ -112,7 +114,7 @@ end
 	Performs several @{loadNumber} prompts to load all the required operation arguments, in order.
 
 	@param string[] operationKeys the list of keys of all the operations to be performed on the image
-	@return number[][] a 2D array of arguments, with indexes correspnding to the operation's position
+	@return number[][] a 2D array of arguments, with indexes corresponding to the operation's position
 		in the input array
 ]]
 local function loadOperationArgs(operationKeys)
@@ -137,6 +139,7 @@ end
 	Repeatedly prompts the user for an image filename, until a valid one is provided.
 
 	@return Image an sRGB interpretation of the loaded image
+	@return string the name of the loaded image
 ]]
 local function loadImage()
 	write(IMAGE_PROMPT)
@@ -161,8 +164,8 @@ end
 
 	@param Image image the image to save
 	@param string filename the file's original file name
-	@param string[] the list of keys of all the operations performed on the image
-	@param number[][] the list of arguments used to perform the operations on the image
+	@param string[] operationKeys the list of keys of all the operations performed on the image
+	@param number[][] operationsArgs the list of arguments used to perform the operations on the image
 ]]
 local function saveImage(image, filename, operationKeys, operationsArgs)
 	local root, ext = filename:match("(.+)(%..-)$")

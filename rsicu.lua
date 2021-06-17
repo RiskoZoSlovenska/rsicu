@@ -53,8 +53,8 @@ do
 		Creates a new ParamInfo container.
 
 		@param string desc this parameter's description
-		@param[opt=STANDARD_COLOUR_INTERVAL] number[] a 2-element array which denotes the param's range (inclusive)
-		@param[opt=false] booleas determines whether arguments passed to this param have to be integers
+		@param[opt=STANDARD_COLOUR_INTERVAL] number[] range a 2-element array which denotes the param's range (inclusive)
+		@param[opt=false] boolean isDecimal determines whether arguments passed to this param have to be integers
 
 		@return ParamInfo
 	]]
@@ -71,6 +71,8 @@ do
 
 		@param string aboveOrBelow
 		@param string whiteOrBlack
+
+		@return string
 	]]
 	local function buildParamDesc1(aboveOrBelow, whiteOrBlack)
 		return string.format(GENERIC_BRIGHTNESS_ARG_DESC_TEMPLATE, aboveOrBelow, whiteOrBlack)
@@ -204,20 +206,20 @@ end
 --[[--
 	Runs an image through multiple operations.
 
-	@param Image image the image to operate on. This should be an sRGB 1-4 band image
-	@param string[] a list of keys of operations to perform
-	@param number[][] a list of arguments for the operations to be made
+	@param Image srcImg the image to operate on. This should be an sRGB 1-4 band image
+	@param string[] operationKeys a list of keys of operations to perform
+	@param number[][] operationsArgs a list of arguments for the operations to be made
 
 	@return Image
 	@throws Error while processing image, usually caused by faulty arguments
 ]]
-local function processImage(image, operationKeys, operationsArgs)
+local function processImage(srcImg, operationKeys, operationsArgs)
 	local noAlpha, alpha
-	if image:bands() == 3 or image:bands() == 1 then -- No alpha band
+	if srcImg:bands() == 3 or srcImg:bands() == 1 then -- No alpha band
 		alpha = 255
-		noAlpha = image
+		noAlpha = srcImg
 	else
-		local bands = image:bandsplit()
+		local bands = srcImg:bandsplit()
 		alpha = table.remove(bands) -- Extract the alpha band
 		noAlpha = Image.bandjoin(bands)
 	end
@@ -231,13 +233,13 @@ local function processImage(image, operationKeys, operationsArgs)
 		local operationArgs = operationsArgs[index]
 
 		local success, res = pcall(operation.func, noAlpha, brightnessMap, unpack(operationArgs))
-		if not success then
+		if success then
+			noAlpha = res
+		else
 			error(string.format(
 				"Error while processing image (%s), check your arguments",
 				res
 			), 2)
-		else
-			noAlpha = res
 		end
 	end
 
@@ -289,7 +291,7 @@ end
 	Checks whether a set of Operation keys are valid.
 	Utility function.
 
-	@param string[] the list of keys
+	@param string[] keys the list of keys
 
 	@return boolean whether they are valid
 	@return string|nil the first invalid key, if there is one
@@ -308,7 +310,7 @@ end
 	Counts the number of arguments required for a set of Operations.
 	Utility function.
 
-	@param string[] a list of keys of Operations
+	@param string[] operationKeys a list of keys of Operations
 	@return int the number of required arguments
 ]]
 local function countParams(operationKeys)
@@ -327,7 +329,7 @@ end
 	Checks whether a number is valid according to a ParamInfo container.
 
 	@param number num the number to check
-	@param ParamInfo paramInfo
+	@param ParamInfo paramInfo the params the number has to satisfy
 
 	@return boolean whether the number satisfies the ParamInfo
 ]]
@@ -350,9 +352,9 @@ assert(checkArg(128.6, {isInt = false, range = {0, 255}}))
 	Creates a short string that describes a set of operations.
 	Utility function.
 
-	@param string[] the keys of Operations that were performed
-	@param number[][] the args the Operations were performed with
-	@param[opt='_'] a string used to join all the individual tag components
+	@param string[] operationKeys the keys of Operations that were performed
+	@param number[][] operationsArgs the args the Operations were performed with
+	@param[opt='_'] string joiner a string used to join all the individual tag components
 
 	@return string the tag
 ]]
