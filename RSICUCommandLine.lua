@@ -103,7 +103,7 @@ local function loadNumber(operationName, paramInfo)
 		if rsicu.checkArg(value, paramInfo) then
 			return value
 		else
-			writef(INVALID_NUM_ERROR, input)
+			writef(INVALID_NUM_ERROR, tostring(input))
 		end
 	end
 end
@@ -148,7 +148,8 @@ local function loadImage()
 		if success then
 			return res:colourspace("srgb"), filename
 		else
-			writef(IMAGE_FAILED_ERROR, filename, res)
+			local loadErrMsg = res:match(".+:%s*(.-)%s*$") or res
+			writef(IMAGE_FAILED_ERROR, tostring(filename), loadErrMsg)
 		end
 	end
 end
