@@ -221,7 +221,8 @@ local function processImage(image, operationKeys, operationsArgs)
 		alpha = table.remove(bands) -- Extract the alpha band
 		noAlpha = Image.bandjoin(bands)
 	end
-	local brightnessMap = image:flatten({background = 255}):bandmean() -- Get a brightness map
+
+	local brightnessMap = noAlpha:bandjoin(alpha):flatten({background = 255}):bandmean() -- Get a brightness map
 
 
 	-- Actually start making the operations now
